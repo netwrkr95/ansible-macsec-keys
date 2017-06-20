@@ -1,0 +1,8 @@
+
+---
+access:
+  device_ip: "{{ inventory_hostname }}"
+  username: cisco
+  password: cisco
+
+...

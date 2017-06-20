@@ -1,0 +1,17 @@
+chain_name: June-key
+key_num: '01'
+cmac: aes-128-cmac
+string_num: '12345678901234567890123456789011'
+#start_hr: 00
+#start_min: 00
+#start_sec: 00
+start_month: June
+start_day: 1
+start_yr: 2017
+# end_hr: 23
+# end_min: 59
+# end_sec: 59
+end_month: June
+end_day: 30
+end_year: 2017
+# infinite: infinite

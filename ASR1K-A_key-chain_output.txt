@@ -1,0 +1,8 @@
+!
+key chain June-key macsec
+ key 01
+   cryptographic-algorithm aes-128-cmac
+  key-string 12345678901234567890123456789011
+   lifetime 00:00:00 Jun 1 2017 23:59:59 Jun 30 2017
+
+!

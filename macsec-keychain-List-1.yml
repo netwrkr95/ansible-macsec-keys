@@ -1,0 +1,113 @@
+---
+
+- name: MACsec Pre-Shared Key Chain Configuration Playbook
+  hosts: csr
+  connection: local
+  gather_facts: no
+
+  #vars:
+  #  provider:
+  #    #  This references my "access.yml' file for login credentials
+  #    # host: "{{ inventory_hostname }}"
+  #    host: "{{ device_ip }}"
+  #    username: "{{ access['username'] }}"
+  #    password: "{{ access['password'] }}"
+
+  tasks:
+
+  - name: Get Login credentials
+
+    include_vars: /mnt/hgfs/vm_shared/ansible/projects/macsec_proj/access.yml
+    #include_vars: /Users/crhill/vm_shared/ansible/projects/macsec_proj/access.yml
+
+
+  - name: Define Provider
+    set_fact:
+      provider:
+      #  This references my "access.yml' file for login credentials
+        host: "{{ inventory_hostname }}"
+        # host: "{{ device_ip }}"
+        username: "{{ access['username'] }}"
+        password: "{{ access['password'] }}"
+
+#  I used variables for all of the needed commands, offering flexibility for the operator
+
+#  - name: Create Entire Key Chain, Name, Key ID & Lifetime
+#    ios_config:
+#      src: key-string_MONTHLY.j2
+#      provider: "{{ provider }}"
+#      match: none
+#    notify:
+#      - write config
+
+
+  - name: Create Key Chain Name & Key ID
+    ios_config:
+      provider: "{{ provider }}"
+      authorize: yes
+      lines:
+        - key chain {{ chain_name }} macsec
+        - key {{ key_num }}
+
+#      src: key-chain_name_ID.j2
+      match: none
+    notify:
+      - write config
+
+  - name: Change cryptographic-algorithm (aes-128-cmac -or- aes-256-cmac)
+    ios_config:
+      provider: "{{ provider }}"
+      authorize: yes
+      parents:
+        - key chain {{ chain_name }} macsec
+        - key {{ key_num }}
+      lines:
+        - cryptographic-algorithm aes-128-cmac
+        # - cryptographic-algorithm aes-256-cmac
+
+      match: none
+    notify:
+      - write config
+
+  - name: Add new Key Number and Lifetime of Key
+    ios_config:
+      provider: "{{ provider }}"
+      authorize: yes
+      parents:
+        - key chain {{ chain_name }} macsec
+        - key {{ key_num }}
+      lines:
+        - key-string {{ string_num }}
+        - lifetime 00:00:00 {{ start_month }} {{ start_day }} 2017 23:59:59 {{ end_month }} {{ end_day }} 2017
+
+      match: none
+    notify:
+      - write config
+
+#  - name: Create Key Lifetime
+#    ios_config:
+#      parents:
+#        - key chain {{ chain_name }} macsec
+#        - key {{ key_num }}
+#      src: key-chain_lifetime.j2
+#      provider: "{{ provider }}"
+#      match: none
+#    notify:
+#      - write config
+#    tags: Lifetime
+
+#  - name: Run 'show mka sessions'
+#    ios_command:
+#      provider: "{{ provider }}"
+#      authorize: yes
+#      commands:
+#        - show mka summary
+#      register: summary
+#
+#  - debug: var=summary.stdout_lines
+
+  handlers:
+    - name: write config
+      ios_command:
+        commands: write memory
+        provider: "{{ provider }}"
