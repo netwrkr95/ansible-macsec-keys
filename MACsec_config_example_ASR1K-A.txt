@@ -1,0 +1,86 @@
+! # ASR-1000-A#sh ver
+! # Cisco IOS XE Software, Version 16.03.02
+! # Cisco IOS Software [Denali], ASR1000 Software
+! # (X86_64_LINUX_IOSD-UNIVERSALK9_NOLI-M), Version 16.3.2, RELEASE SOFTWARE (fc4)
+
+
+ASR-1000-A#sh run
+!
+!
+key chain June-key macsec
+ key 01
+   cryptographic-algorithm aes-128-cmac
+  key-string 12345678901234567890123456789011
+   lifetime 00:00:00 Jun 1 2017 23:59:59 Jun 30 2017
+!
+key chain KEY_1 macsec
+ key 01
+   cryptographic-algorithm aes-256-cmac
+  key-string 1234567890123456789012345678901212345678901234567890123456789012
+   lifetime 00:00:00 Jan 1 2015 infinite
+ key 10
+   cryptographic-algorithm aes-128-cmac
+   lifetime 00:00:00 Jan 1 2016 00:00:00 Jan 1 2017
+!
+key chain key-roll macsec
+ key 01
+   cryptographic-algorithm aes-128-cmac
+  key-string 12345678901234567890123456789012
+   lifetime 14:59:59 Apr 4 2017 duration 5000
+ key 02
+   cryptographic-algorithm aes-128-cmac
+  key-string 12345678901234567890123456789011
+   lifetime 16:00:00 Apr 4 2017 17:10:00 Apr 4 2017
+ key 03
+   cryptographic-algorithm aes-128-cmac
+  key-string 12345678901234567890123456789013
+   lifetime 17:00:00 Apr 4 2017 18:10:00 Apr 4 2017
+ key 04
+   cryptographic-algorithm aes-128-cmac
+  key-string 12345678901234567890123456789014
+   lifetime 18:00:00 Apr 4 2017 infinite
+!
+!
+!
+!
+!
+!
+
+netconf-yang
+!
+restconf
+!
+mka policy POLICY_1
+ macsec-cipher-suite gcm-aes-256
+ confidentiality-offset 30
+!
+!
+!
+interface TenGigabitEthernet0/0/1
+ description WAN MACsec Trunk (to ASR 1000 B)
+ mtu 2000
+ ip address 10.5.0.1 255.255.255.0
+ ip mtu 1468
+ eapol destination-address broadcast-address
+ mka policy POLICY_1
+ mka pre-shared-key key-chain key-roll
+ macsec
+ cdp enable
+!
+!
+interface GigabitEthernet0/0/1
+ no ip address
+ shutdown
+ negotiation auto
+ macsec dot1q-in-clear 1
+!
+interface GigabitEthernet0/0/1.10
+ encapsulation dot1Q 10
+ ip address 10.3.0.1 255.255.255.0
+ shutdown
+ eapol destination-address broadcast-address
+ mka policy POLICY_1
+ mka pre-shared-key key-chain KEY_1
+ macsec
+!
+end
